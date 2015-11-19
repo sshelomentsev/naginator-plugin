@@ -4,10 +4,23 @@ import com.tikal.jenkins.plugins.multijob.MultiJobBuild;
 import com.tikal.jenkins.plugins.multijob.listeners.MultiJobListener;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
 import hudson.model.Result;
 
 @Extension
 public class NaginatorMultiJobBuildListener extends MultiJobListener {
+
+	@Override
+	public void onStart(AbstractBuild<?, ?> build, MultiJobBuild multiJobBuild) {
+		AbstractBuild<?, ?> parentBuild = multiJobBuild;
+		AbstractProject<?, ?> parentProject = parentBuild.getProject();
+		NaginatorPublisher np = parentProject.getPublishersList().get(NaginatorPublisher.class);
+		NaginatorPublisherScheduleAction action = build.getAction(NaginatorPublisherScheduleAction.class);
+		if (null != np && null == action) {
+			NaginatorPublisherScheduleAction childAction = new NaginatorPublisherScheduleAction(np);
+			build.addAction(childAction);
+		}
+	}
 
 	@Override
 	public boolean isComplete(AbstractBuild<?, ?> build, MultiJobBuild multiJobBuild) {
@@ -20,25 +33,10 @@ public class NaginatorMultiJobBuildListener extends MultiJobListener {
 				boolean f = (result.equals(Result.UNSTABLE) && action.isRerunIfUnstable())
 						|| result.equals(Result.FAILURE);
 				childIsPassed = !f;
+			} else {
 			}
 		}
 
-		if (childIsPassed) {
-			AbstractBuild<?, ?> parentBuild = multiJobBuild;
-			NaginatorPublisherScheduleAction parentAction = parentBuild.getAction(NaginatorPublisherScheduleAction
-					.class);
-			if (null != parentAction) {
-				System.out.println("parent action for " + build.getProject().getDisplayName() + " #" + build
-						.getNumber());
-				Result result = build.getResult();
-				if (null != result && parentAction.isRerunMultiJobChild()) {
-					boolean f = (result.equals(Result.UNSTABLE) && parentAction.isRerunIfUnstable())
-							|| result.equals(Result.FAILURE);
-					System.out.println("ans = " + !f);
-					return !f;
-				}
-			}
-		}
 		return childIsPassed;
 	}
 }
