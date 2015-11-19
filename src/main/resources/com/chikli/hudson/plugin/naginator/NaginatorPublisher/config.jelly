@@ -7,6 +7,12 @@
         <f:checkbox />
     </f:entry>
 
+    <j:if test="${descriptor.multiJobProject}">
+        <f:entry title="Rerun any child build of MultiJob project" field="rerunMultiJobChild">
+            <f:checkbox />
+        </f:entry>
+    </j:if>
+
     <f:entry title="${%Delay before retrying build}">
         <j:invokeStatic var="delays" className="com.chikli.hudson.plugin.naginator.ScheduleDelay" method="all"/>
         <f:hetero-radio descriptors="${delays}" field="delay"/>

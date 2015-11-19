@@ -1,5 +1,6 @@
 package com.chikli.hudson.plugin.naginator;
 
+import com.tikal.jenkins.plugins.multijob.MultiJobBuild;
 import hudson.matrix.Combination;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixRun;
@@ -23,7 +24,10 @@ public class NaginatorListener extends RunListener<AbstractBuild<?,?>> {
     @Override
     public void onCompleted(AbstractBuild<?, ?> build, @Nonnull TaskListener listener) {
         // Do nothing for null or a single Matrix run. (Run only when all Matrix finishes)
-        if (build == null || build instanceof MatrixRun) {
+        if (build instanceof MultiJobBuild) {
+            System.out.println("MULTI JOB BUILD should be return");
+        }
+        if (build == null || build instanceof MatrixRun || build instanceof MultiJobBuild) {
             return;
         }
         

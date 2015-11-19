@@ -42,6 +42,8 @@ public class NaginatorScheduleAction extends InvisibleAction {
     private final int maxSchedule;
     private final ScheduleDelay delay;
     private final boolean rerunMatrixPart;
+    private final boolean rerunMultiJobChild;
+
     
     /**
      * Should always reschedule the build.
@@ -67,11 +69,25 @@ public class NaginatorScheduleAction extends InvisibleAction {
      * @param rerunMatrixPart tests matrix child builds and triggers only failed parts.
      */
     public NaginatorScheduleAction(int maxSchedule, @CheckForNull ScheduleDelay delay, boolean rerunMatrixPart) {
+        this(maxSchedule, delay, rerunMatrixPart, false);
+    }
+
+	/**
+     * Should reschedule the build for specified times.
+     *
+     * @param maxSchedule max times to reschedule the build. Less or equal to 0 indicates "always".
+     * @param delay A scheduling policy to trigger a new build.
+     * @param rerunMatrixPart tests matrix child builds and triggers only failed parts.
+     * @param rerunMultiJobChild triggers failed childs of MultiJob project
+     */
+    public NaginatorScheduleAction(int maxSchedule, @CheckForNull ScheduleDelay delay, boolean rerunMatrixPart,
+                                   boolean rerunMultiJobChild) {
         this.maxSchedule = maxSchedule;
         this.delay = (delay != null) ? delay : new ProgressiveDelay(5 * 60, 3 * 60 * 60);
         this.rerunMatrixPart = rerunMatrixPart;
+        this.rerunMultiJobChild = rerunMultiJobChild;
     }
-    
+
     /**
      * The max times to reschedule the build.
      * Less or equal to 0 indicates "always".
@@ -96,7 +112,14 @@ public class NaginatorScheduleAction extends InvisibleAction {
     public boolean isRerunMatrixPart() {
         return rerunMatrixPart;
     }
-    
+
+	/**
+     * @return whether to test each child jobs to reschedule for MultiJob builds.
+     */
+    public boolean isRerunMultiJobChild() {
+        return rerunMultiJobChild;
+    }
+
     /**
      * Tests whether {@link NaginatorListener} should reschedule the build.
      * You can override this method to reschedule the build conditionally.

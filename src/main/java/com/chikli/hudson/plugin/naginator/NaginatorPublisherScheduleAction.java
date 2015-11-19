@@ -32,7 +32,7 @@ public class NaginatorPublisherScheduleAction extends NaginatorScheduleAction {
     private final boolean regexpForMatrixParent;
     
     public NaginatorPublisherScheduleAction(NaginatorPublisher publisher) {
-        super(publisher.getMaxSchedule(), publisher.getDelay(), publisher.isRerunMatrixPart());
+        super(publisher.getMaxSchedule(), publisher.getDelay(), publisher.isRerunMatrixPart(), publisher.isRerunMultiJobChild());
         this.regexpForRerun = publisher.getRegexpForRerun();
         this.rerunIfUnstable = publisher.isRerunIfUnstable();
         this.regexpForMatrixParent = publisher.isRegexpForMatrixParent();

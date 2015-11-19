@@ -1,5 +1,6 @@
 package com.chikli.hudson.plugin.naginator;
 
+import com.tikal.jenkins.plugins.multijob.MultiJobProject;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.matrix.MatrixRun;
@@ -31,6 +32,7 @@ public class NaginatorPublisher extends Notifier {
     private final String regexpForRerun;
     private final boolean rerunIfUnstable;
     private final boolean rerunMatrixPart;
+    private final boolean rerunMultiJobChild;
     private final boolean checkRegexp;
     private final Boolean regexpForMatrixParent;
 
@@ -57,13 +59,12 @@ public class NaginatorPublisher extends Notifier {
                               boolean checkRegexp,
                               int maxSchedule,
                               ScheduleDelay delay) {
-        this(regexpForRerun, rerunIfUnstable, rerunMatrixPart, checkRegexp, true, maxSchedule, delay);
+        this(regexpForRerun, rerunIfUnstable, rerunMatrixPart, false, checkRegexp, true, maxSchedule, delay);
     }
-    
-    /**
-     * @since 1.16
+
+	/**
+	 * backward compatible constructor
      */
-    @DataBoundConstructor
     public NaginatorPublisher(String regexpForRerun,
                               boolean rerunIfUnstable,
                               boolean rerunMatrixPart,
@@ -71,9 +72,26 @@ public class NaginatorPublisher extends Notifier {
                               boolean regexpForMatrixParent,
                               int maxSchedule,
                               ScheduleDelay delay) {
+        this(regexpForRerun, rerunIfUnstable, rerunMatrixPart, false, checkRegexp, regexpForMatrixParent,
+            maxSchedule, delay);
+    }
+
+    /**
+     * @since 1.17
+     */
+    @DataBoundConstructor
+    public NaginatorPublisher(String regexpForRerun,
+                              boolean rerunIfUnstable,
+                              boolean rerunMatrixPart,
+                              boolean rerunMultiJobChild,
+                              boolean checkRegexp,
+                              boolean regexpForMatrixParent,
+                              int maxSchedule,
+                              ScheduleDelay delay) {
         this.regexpForRerun = regexpForRerun;
         this.rerunIfUnstable = rerunIfUnstable;
         this.rerunMatrixPart = rerunMatrixPart;
+        this.rerunMultiJobChild = rerunMultiJobChild;
         this.checkRegexp = checkRegexp;
         this.maxSchedule = maxSchedule;
         this.regexpForMatrixParent = regexpForMatrixParent;
@@ -106,7 +124,11 @@ public class NaginatorPublisher extends Notifier {
     public boolean isRerunMatrixPart() {
         return rerunMatrixPart;
     }
-    
+
+    public boolean isRerunMultiJobChild() {
+        return rerunMultiJobChild;
+    }
+
     public boolean isCheckRegexp() {
         return checkRegexp;
     }
@@ -177,6 +199,8 @@ public class NaginatorPublisher extends Notifier {
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
+        private boolean isApplicableForMultiJob = false;
+
         public DescriptorImpl() {
             super(NaginatorPublisher.class);
         }
@@ -190,7 +214,14 @@ public class NaginatorPublisher extends Notifier {
 
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
+            if (jobType.equals(MultiJobProject.class)) {
+                isApplicableForMultiJob = true;
+            }
             return true;
+        }
+
+        public boolean isMultiJobProject() {
+            return isApplicableForMultiJob;
         }
 
         /**
